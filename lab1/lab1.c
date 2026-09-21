@@ -4,31 +4,31 @@
 #include <sys/types.h>
 
 int main(void) {
-  char *line = NULL;
-  size_t len = 0;
+  char *input_buf = NULL;
+  size_t buf_size = 0;
 
   while (1) {
     printf("> ");
 
-    ssize_t nread = getline(&line, &len, stdin);
-    // getline throws -1 when erroneous
-    if (nread == -1) {
+    ssize_t chars_read = getline(&input_buf, &buf_size, stdin);
+    if (chars_read == -1) {
+      // EOF (Ctrl-D) or error: stop looping.
       break;
     }
 
-    // getline() keeps the trailing newline as per man page. Remove it
-    if (nread > 0 && line[nread - 1] == '\n') {
-      line[nread - 1] = '\0';
+    // getline() keeps the trailing newline; strip it.
+    if (chars_read > 0 && input_buf[chars_read - 1] == '\n') {
+      input_buf[chars_read - 1] = '\0';
     }
 
-    char *saveptr = NULL;
-    char *token = strtok_r(line, " ", &saveptr);
-    while (token != NULL) {
-      printf("%s\n", token);
-      token = strtok_r(NULL, " ", &saveptr);
+    char *state = NULL;
+    char *word = strtok_r(input_buf, " ", &state);
+    while (word != NULL) {
+      printf("%s\n", word);
+      word = strtok_r(NULL, " ", &state);
     }
   }
 
-  free(line);
+  free(input_buf);
   return 0;
 }
